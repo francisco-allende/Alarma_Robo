@@ -116,4 +116,19 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // Agregar la plataforma Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:33.3.0')
+
+    // Agregar las dependencias de Firebase que vas a usar
+    // Firebase Authentication
+    implementation 'com.google.firebase:firebase-auth'
+
+    // Firebase Firestore (para almacenar los datos)
+    implementation 'com.google.firebase:firebase-firestore'
+
+    // Firebase Storage (para las fotos)
+    implementation 'com.google.firebase:firebase-storage'
 }
+
+apply plugin: 'com.google.gms.google-services'

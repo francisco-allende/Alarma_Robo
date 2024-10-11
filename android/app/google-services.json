@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "947854626249",
+    "project_id": "alarma-de-robo-a3722",
+    "storage_bucket": "alarma-de-robo-a3722.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947854626249:android:604de6671c8f7e57262c18",
+        "android_client_info": {
+          "package_name": "com.allende.alarmarobo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBF8aChbgGkTPdYdE_kKezh2ouLyXb5nnQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
