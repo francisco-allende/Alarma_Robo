@@ -24,6 +24,7 @@ const HomeScreen = () => {
   const [isArmed, setIsArmed] = useState(false);
   const [orientation, setOrientation] = useState('horizontal');
   const [lastOrientation, setLastOrientation] = useState('horizontal');
+  const [isInitialRender, setIsInitialRender] = useState(true);
 
   useEffect(() => {
     setUpdateIntervalForType(SensorTypes.accelerometer, 100);
@@ -41,22 +42,28 @@ const HomeScreen = () => {
       if (newOrientation !== orientation) {
         setLastOrientation(orientation);
         setOrientation(newOrientation);
-        if (!isArmed) {
+        if (!isArmed && !isInitialRender) {
           setIsArmed(true);
         }
       }
     });
 
+    // Establecer isInitialRender a false después de un breve retraso
+    const timer = setTimeout(() => {
+      setIsInitialRender(false);
+    }, 1000);
+
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timer);
     };
-  }, [orientation, isArmed]);
+  }, [orientation, isArmed, isInitialRender]);
 
   useEffect(() => {
-    if (isArmed && orientation !== lastOrientation) {
+    if (isArmed && orientation !== lastOrientation && !isInitialRender) {
       handleOrientationChange(orientation);
     }
-  }, [orientation, isArmed, lastOrientation]);
+  }, [orientation, isArmed, lastOrientation, isInitialRender]);
 
   const handleOrientationChange = newOrientation => {
     switch (newOrientation) {
@@ -88,34 +95,40 @@ const HomeScreen = () => {
     });
   };
 
-  const disarmAlarm = () => {
-    Alert.prompt(
-      'Desactivar Alarma',
-      'Ingrese su contraseña para desactivar la alarma',
-      [
-        {
-          text: 'Cancelar',
-          onPress: () => console.log('Cancelado'),
-          style: 'cancel',
-        },
-        {
-          text: 'OK',
-          onPress: password => {
-            if (password === user.password) {
-              // Asumiendo que tienes acceso a la contraseña del usuario
-              setIsArmed(false);
-            } else {
-              // Contraseña incorrecta
-              playSound('wrong_password.mp3');
-              Vibration.vibrate(5000);
-              Torch.switchState(true);
-              setTimeout(() => Torch.switchState(false), 5000);
-            }
+  const toggleAlarm = () => {
+    if (isArmed) {
+      // Desactivar la alarma
+      Alert.prompt(
+        'Desactivar Alarma',
+        'Ingrese su contraseña para desactivar la alarma',
+        [
+          {
+            text: 'Cancelar',
+            onPress: () => console.log('Cancelado'),
+            style: 'cancel',
           },
-        },
-      ],
-      'secure-text',
-    );
+          {
+            text: 'OK',
+            onPress: password => {
+              if (password === user.password) {
+                // Asumiendo que tienes acceso a la contraseña del usuario
+                setIsArmed(false);
+              } else {
+                // Contraseña incorrecta
+                playSound('wrong_password.mp3');
+                Vibration.vibrate(5000);
+                Torch.switchState(true);
+                setTimeout(() => Torch.switchState(false), 5000);
+              }
+            },
+          },
+        ],
+        'secure-text',
+      );
+    } else {
+      // Activar la alarma
+      setIsArmed(true);
+    }
   };
 
   return (
@@ -123,9 +136,9 @@ const HomeScreen = () => {
       <GoBackScreen isActive={isArmed} />
       <TouchableOpacity
         style={[styles.button, {backgroundColor: isArmed ? 'red' : 'green'}]}
-        onPress={isArmed ? disarmAlarm : () => {}}>
+        onPress={toggleAlarm}>
         <Text style={styles.buttonText}>
-          {isArmed ? 'Desactivar' : 'Alarma Desactivada'}
+          {isArmed ? 'Desactivar' : 'Activar'} Alarma
         </Text>
       </TouchableOpacity>
     </View>
