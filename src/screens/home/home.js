@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useContext, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -23,81 +23,121 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const [isArmed, setIsArmed] = useState(false);
   const [orientation, setOrientation] = useState('horizontal');
-  const [lastOrientation, setLastOrientation] = useState('horizontal');
   const [isInitialRender, setIsInitialRender] = useState(true);
+  const currentSound = useRef(null);
+  const orientationTimeout = useRef(null);
 
   useEffect(() => {
     setUpdateIntervalForType(SensorTypes.accelerometer, 100);
+    let subscription;
 
-    const subscription = accelerometer.subscribe(({x, y, z}) => {
-      let newOrientation;
-      if (Math.abs(y) > 8) {
-        newOrientation = 'vertical';
-      } else if (Math.abs(x) > 8) {
-        newOrientation = x > 0 ? 'right' : 'left';
-      } else {
-        newOrientation = 'horizontal';
-      }
-
-      if (newOrientation !== orientation) {
-        setLastOrientation(orientation);
-        setOrientation(newOrientation);
-        if (!isArmed && !isInitialRender) {
-          setIsArmed(true);
+    const _subscribe = () => {
+      subscription = accelerometer.subscribe(({x, y, z}) => {
+        let newOrientation;
+        if (Math.abs(y) > 7) {
+          newOrientation = 'vertical';
+        } else if (Math.abs(x) > 3) {
+          newOrientation = x > 0 ? 'rightTilt' : 'leftTilt';
+        } else {
+          newOrientation = 'horizontal';
         }
-      }
-    });
 
-    // Establecer isInitialRender a false después de un breve retraso
+        if (newOrientation !== orientation) {
+          console.log(
+            'Nueva orientación:',
+            newOrientation,
+            'X:',
+            x,
+            'Y:',
+            y,
+            'Z:',
+            z,
+          );
+          if (!isInitialRender) {
+            handleOrientationChange(newOrientation);
+          }
+          setOrientation(newOrientation);
+          if (!isArmed && !isInitialRender) {
+            setIsArmed(true);
+          }
+        }
+      });
+    };
+
+    const _unsubscribe = () => {
+      subscription && subscription.unsubscribe();
+    };
+
+    _subscribe();
+
     const timer = setTimeout(() => {
       setIsInitialRender(false);
     }, 1000);
 
     return () => {
-      subscription.unsubscribe();
+      _unsubscribe();
       clearTimeout(timer);
     };
   }, [orientation, isArmed, isInitialRender]);
 
-  useEffect(() => {
-    if (isArmed && orientation !== lastOrientation && !isInitialRender) {
-      handleOrientationChange(orientation);
-    }
-  }, [orientation, isArmed, lastOrientation, isInitialRender]);
-
   const handleOrientationChange = newOrientation => {
-    switch (newOrientation) {
-      case 'left':
-        playSound('left.mp3');
-        break;
-      case 'right':
-        playSound('right.mp3');
-        break;
-      case 'vertical':
-        playSound('vertical.mp3');
-        Torch.switchState(true);
-        setTimeout(() => Torch.switchState(false), 5000);
-        break;
-      case 'horizontal':
-        playSound('horizontal.mp3');
-        Vibration.vibrate(5000);
-        break;
+    if (orientationTimeout.current) {
+      clearTimeout(orientationTimeout.current);
     }
+
+    orientationTimeout.current = setTimeout(() => {
+      if (currentSound.current) {
+        currentSound.current.stop(() => {
+          currentSound.current.release();
+        });
+      }
+
+      let soundFile;
+      switch (newOrientation) {
+        case 'leftTilt':
+          soundFile = require('../../assets/sounds/devolve.mp3');
+          break;
+        case 'rightTilt':
+          soundFile = require('../../assets/sounds/choreando.mp3');
+          break;
+        case 'vertical':
+          soundFile = require('../../assets/sounds/cop-car.mp3');
+          Torch.switchState(true);
+          setTimeout(() => Torch.switchState(false), 5000);
+          break;
+        case 'horizontal':
+          soundFile = require('../../assets/sounds/epa.mp3');
+          Vibration.vibrate(5000);
+          break;
+      }
+
+      if (soundFile) {
+        playSound(soundFile);
+      }
+    }, 500); // Espera 500ms antes de cambiar la orientación
   };
 
   const playSound = soundFile => {
-    const sound = new Sound(soundFile, Sound.MAIN_BUNDLE, error => {
+    const sound = new Sound(soundFile, error => {
       if (error) {
-        console.log('failed to load the sound', error);
+        console.log('Error al cargar el sonido:', error);
         return;
       }
-      sound.play(() => sound.release());
+      currentSound.current = sound;
+      sound.play(success => {
+        if (success) {
+          console.log('Reproducción exitosa');
+        } else {
+          console.log('Error en la reproducción');
+        }
+        sound.release();
+        currentSound.current = null;
+      });
     });
   };
 
   const toggleAlarm = () => {
     if (isArmed) {
-      // Desactivar la alarma
       Alert.prompt(
         'Desactivar Alarma',
         'Ingrese su contraseña para desactivar la alarma',
@@ -111,11 +151,9 @@ const HomeScreen = () => {
             text: 'OK',
             onPress: password => {
               if (password === user.password) {
-                // Asumiendo que tienes acceso a la contraseña del usuario
                 setIsArmed(false);
               } else {
-                // Contraseña incorrecta
-                playSound('wrong_password.mp3');
+                playSound(require('../../assets/sounds/wrong_password.mp3'));
                 Vibration.vibrate(5000);
                 Torch.switchState(true);
                 setTimeout(() => Torch.switchState(false), 5000);
@@ -126,7 +164,6 @@ const HomeScreen = () => {
         'secure-text',
       );
     } else {
-      // Activar la alarma
       setIsArmed(true);
     }
   };
