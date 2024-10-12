@@ -34,12 +34,18 @@ const HomeScreen = () => {
     const _subscribe = () => {
       subscription = accelerometer.subscribe(({x, y, z}) => {
         let newOrientation;
-        if (Math.abs(y) > 7) {
+        const absX = Math.abs(x);
+        const absY = Math.abs(y);
+        const absZ = Math.abs(z);
+
+        if (absY > 9 && absX < 2 && absZ < 2) {
           newOrientation = 'vertical';
-        } else if (Math.abs(x) > 3) {
+        } else if (absZ > 9 && absX < 2 && absY < 2) {
+          newOrientation = 'horizontal';
+        } else if (absX > 3) {
           newOrientation = x > 0 ? 'rightTilt' : 'leftTilt';
         } else {
-          newOrientation = 'horizontal';
+          newOrientation = 'horizontal'; // Default to horizontal for stability
         }
 
         if (newOrientation !== orientation) {
@@ -114,7 +120,7 @@ const HomeScreen = () => {
       if (soundFile) {
         playSound(soundFile);
       }
-    }, 500); // Espera 500ms antes de cambiar la orientación
+    }, 200); // Reduced to 200ms for faster response
   };
 
   const playSound = soundFile => {
