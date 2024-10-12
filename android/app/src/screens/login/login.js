@@ -81,14 +81,23 @@ const LoginScreen = ({navigation}) => {
   };
 
   const easyLogin = async () => {
-    await auth().signInWithEmailAndPassword('adminuno@yopmail.com', '12345678');
+    await auth().signInWithEmailAndPassword('test@yopmail.com', '12345678');
     navigation.navigate('Home');
   };
 
   return (
     <View onPress={() => Keyboard.dismiss} style={styles.container}>
+      <View style={[styles.titleContainer]}>
+        <ImageBackground
+          style={{width: '100%', height: 220, transform: [{scaleX: 0.5}]}}
+          imageStyle={{resizeMode: 'stretch'}}
+          source={require('../../assets/img/portada.png')}></ImageBackground>
+      </View>
+
       <View style={[styles.form]}>
-        <Text style={styles.welcomeTitle}>Bienvenido a la alarma de robo!</Text>
+        <Text style={styles.welcomeTitle}>
+          Bienvenido a Relevamiento Visual!
+        </Text>
 
         <View style={styles.inputContainer}>
           <TextInput

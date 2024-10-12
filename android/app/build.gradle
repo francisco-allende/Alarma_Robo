@@ -77,9 +77,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.alarmaderobo"
+    namespace "com.allende.alarmarobo"
     defaultConfig {
-        applicationId "com.alarmaderobo"
+        applicationId "com.allende.alarmarobo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

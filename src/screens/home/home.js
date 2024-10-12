@@ -1,106 +1,151 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, Button, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
-import { AuthContext } from '../../utils/auth.context';
-import { useNavigation } from '@react-navigation/native';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faSignOutAlt, faUser } from '@fortawesome/free-solid-svg-icons';
-import AppContainer from '../../assets/app-container/container';
-import { AppColors } from '../../assets/styles/default-styles';
+import React, {useState, useContext, useEffect} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Vibration,
+  Alert,
+} from 'react-native';
+import {AuthContext} from '../../utils/auth.context';
+import {useNavigation} from '@react-navigation/native';
+import {
+  accelerometer,
+  setUpdateIntervalForType,
+  SensorTypes,
+} from 'react-native-sensors';
+import Sound from 'react-native-sound';
+import Torch from 'react-native-torch';
+import GoBackScreen from '../../components/go-back';
 
 const HomeScreen = () => {
-    const { signOut } = useContext(AuthContext);
-    const navigation = useNavigation();
+  const {user} = useContext(AuthContext);
+  const navigation = useNavigation();
+  const [isArmed, setIsArmed] = useState(false);
+  const [orientation, setOrientation] = useState('horizontal');
+  const [lastOrientation, setLastOrientation] = useState('horizontal');
 
-    const handleCosasLindas = () => navigation.navigate("CosasLindas", {navigation:navigation});
-    const handleCosasFeas = () => navigation.navigate("CosasFeas", {navigation:navigation});
+  useEffect(() => {
+    setUpdateIntervalForType(SensorTypes.accelerometer, 100);
 
-    const handleLogOut = async () => {
-        await signOut();
-        navigation.navigate("Login");
+    const subscription = accelerometer.subscribe(({x, y, z}) => {
+      let newOrientation;
+      if (Math.abs(y) > 8) {
+        newOrientation = 'vertical';
+      } else if (Math.abs(x) > 8) {
+        newOrientation = x > 0 ? 'right' : 'left';
+      } else {
+        newOrientation = 'horizontal';
+      }
+
+      if (newOrientation !== orientation) {
+        setLastOrientation(orientation);
+        setOrientation(newOrientation);
+        if (!isArmed) {
+          setIsArmed(true);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [orientation, isArmed]);
+
+  useEffect(() => {
+    if (isArmed && orientation !== lastOrientation) {
+      handleOrientationChange(orientation);
     }
+  }, [orientation, isArmed, lastOrientation]);
 
-    const handleUserPhotos = () => {
-        navigation.navigate("MisFotos"); 
+  const handleOrientationChange = newOrientation => {
+    switch (newOrientation) {
+      case 'left':
+        playSound('left.mp3');
+        break;
+      case 'right':
+        playSound('right.mp3');
+        break;
+      case 'vertical':
+        playSound('vertical.mp3');
+        Torch.switchState(true);
+        setTimeout(() => Torch.switchState(false), 5000);
+        break;
+      case 'horizontal':
+        playSound('horizontal.mp3');
+        Vibration.vibrate(5000);
+        break;
     }
+  };
 
-    return (
-        <AppContainer containerStyles={styles.container}>
-            <View style={styles.headerContainer}>
-                <TouchableOpacity onPress={handleLogOut}>
-                    <FontAwesomeIcon icon={faSignOutAlt} size={20} style={styles.iconMenu} />
-                </TouchableOpacity>
-                <Text style={styles.headerText}>Relevamiento Visual</Text>
-                <TouchableOpacity onPress={handleUserPhotos}>
-                    <FontAwesomeIcon icon={faUser} size={20} style={styles.iconMenu} />
-                </TouchableOpacity>
-            </View>
+  const playSound = soundFile => {
+    const sound = new Sound(soundFile, Sound.MAIN_BUNDLE, error => {
+      if (error) {
+        console.log('failed to load the sound', error);
+        return;
+      }
+      sound.play(() => sound.release());
+    });
+  };
 
-            <View style={styles.buttonsContainer}>
-                <TouchableOpacity style={styles.button} onPress={handleCosasLindas}>
-                    <ImageBackground
-                        source={require('../../assets/img/cosas_lindas.png')}
-                        style={styles.imageBackground}>
-                        <Text style={styles.buttonText}>Cosas Lindas</Text>
-                    </ImageBackground>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.button} onPress={handleCosasFeas}>
-                    <ImageBackground
-                        source={require('../../assets/img/cosas_feas.png')}
-                        style={styles.imageBackground}>
-                        <Text style={styles.buttonText}>Cosas Feas</Text>
-                    </ImageBackground>
-                </TouchableOpacity>
-            </View>
-        </AppContainer>
+  const disarmAlarm = () => {
+    Alert.prompt(
+      'Desactivar Alarma',
+      'Ingrese su contraseña para desactivar la alarma',
+      [
+        {
+          text: 'Cancelar',
+          onPress: () => console.log('Cancelado'),
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: password => {
+            if (password === user.password) {
+              // Asumiendo que tienes acceso a la contraseña del usuario
+              setIsArmed(false);
+            } else {
+              // Contraseña incorrecta
+              playSound('wrong_password.mp3');
+              Vibration.vibrate(5000);
+              Torch.switchState(true);
+              setTimeout(() => Torch.switchState(false), 5000);
+            }
+          },
+        },
+      ],
+      'secure-text',
     );
+  };
+
+  return (
+    <View style={styles.container}>
+      <GoBackScreen isActive={isArmed} />
+      <TouchableOpacity
+        style={[styles.button, {backgroundColor: isArmed ? 'red' : 'green'}]}
+        onPress={isArmed ? disarmAlarm : () => {}}>
+        <Text style={styles.buttonText}>
+          {isArmed ? 'Desactivar' : 'Alarma Desactivada'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F5F5'
-    },
-    headerContainer: {
-        padding: 15,
-        alignItems: 'center',
-        backgroundColor: AppColors.purple,
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-    headerText: {
-        color: 'white',
-        fontSize: 18,
-        textTransform: 'capitalize',
-        textAlign: 'center',
-        flex: 1
-    },
-    iconMenu: {
-        color: '#FFF'
-    },
-    buttonsContainer: {
-        flex: 1,
-        justifyContent: 'space-between'
-    },
-    button: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    imageBackground: {
-        width: '100%',
-        height: '100%',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    buttonText: {
-        color: 'white',
-        fontSize: 24,
-        fontWeight: 'bold',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        padding: 10,
-        borderRadius: 5
-    }
+  container: {
+    flex: 1,
+  },
+  button: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 24,
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });
 
 export default HomeScreen;

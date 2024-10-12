@@ -9,12 +9,11 @@ import {
   AppFontSize,
 } from '../assets/styles/default-styles';
 
-export default function GoBackScreen({isActive}) {
+export default function GoBackScreen({text}) {
   const navigation = useNavigation();
 
   return (
-    <View
-      style={[styles.header, {backgroundColor: isActive ? 'red' : 'green'}]}>
+    <View style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <FontAwesomeIcon
           icon={faChevronLeft}
@@ -22,12 +21,14 @@ export default function GoBackScreen({isActive}) {
           style={AppButton.goBack}
         />
       </TouchableOpacity>
+      <Text style={[AppFontSize.xxxl, {color: AppColors.white}]}> {text} </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
+    backgroundColor: AppColors.purple,
     color: AppColors.white,
     flexDirection: 'row',
     justifyContent: 'flex-start',

@@ -14,7 +14,7 @@ const SplashScreen = ({navigation}) => {
   return (
     <View style={styles.container}>
       <Image
-        source={require('./../../assets/img/icono.png')}
+        source={require('./../../assets/img/edificios.png')}
         style={styles.icon}
       />
       <Text style={styles.title}>Relevamiento Visual</Text>
