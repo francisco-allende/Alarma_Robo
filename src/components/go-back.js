@@ -14,7 +14,10 @@ export default function GoBackScreen({isActive}) {
 
   return (
     <View
-      style={[styles.header, {backgroundColor: isActive ? 'red' : 'green'}]}>
+      style={[
+        styles.header,
+        {backgroundColor: isActive ? '#FF4136' : '#2ECC40'},
+      ]}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <FontAwesomeIcon
           icon={faChevronLeft}

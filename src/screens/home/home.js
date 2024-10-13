@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Vibration,
   Alert,
+  Image,
+  Dimensions,
 } from 'react-native';
 import {AuthContext} from '../../utils/auth.context';
 import {useNavigation} from '@react-navigation/native';
@@ -17,6 +19,8 @@ import {
 import Sound from 'react-native-sound';
 import Torch from 'react-native-torch';
 import GoBackScreen from '../../components/go-back';
+
+const {width, height} = Dimensions.get('window');
 
 const HomeScreen = () => {
   const {user} = useContext(AuthContext);
@@ -42,8 +46,11 @@ const HomeScreen = () => {
           lastVerticalTime.current = now;
         } else if (Math.abs(x) > 3 && now - lastVerticalTime.current > 500) {
           newOrientation = x > 0 ? 'rightTilt' : 'leftTilt';
-        } else {
+        } else if (Math.abs(z) > 8) {
+          // Increased sensitivity for horizontal
           newOrientation = 'horizontal';
+        } else {
+          newOrientation = orientation; // Keep current orientation if no significant change
         }
 
         if (newOrientation !== orientation) {
@@ -107,7 +114,7 @@ const HomeScreen = () => {
         case 'vertical':
           soundFile = require('../../assets/sounds/cop-car.mp3');
           Torch.switchState(true);
-          setTimeout(() => Torch.switchState(false), 5000);
+          setTimeout(() => Torch.switchState(false), 3000);
           break;
         case 'horizontal':
           soundFile = require('../../assets/sounds/epa.mp3');
@@ -118,7 +125,7 @@ const HomeScreen = () => {
       if (soundFile) {
         playSound(soundFile);
       }
-    }, 1000); // Reducido a 250ms para una respuesta más rápida
+    }, 500); // Adjusted to 500ms for a balance between responsiveness and stability
   };
 
   const playSound = soundFile => {
@@ -176,10 +183,17 @@ const HomeScreen = () => {
     <View style={styles.container}>
       <GoBackScreen isActive={isArmed} />
       <TouchableOpacity
-        style={[styles.button, {backgroundColor: isArmed ? 'red' : 'green'}]}
+        style={[
+          styles.buttonContainer,
+          isArmed ? styles.armed : styles.disarmed,
+        ]}
         onPress={toggleAlarm}>
+        <Image
+          source={require('../../assets/img/icono.png')}
+          style={styles.buttonImage}
+        />
         <Text style={styles.buttonText}>
-          {isArmed ? 'Desactivar' : 'Activar'} Alarma
+          {isArmed ? 'DESACTIVAR' : 'ACTIVAR'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -189,16 +203,29 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#1A1A40',
   },
-  button: {
+  buttonContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonImage: {
+    width: width * 0.6,
+    height: width * 0.6,
+    resizeMode: 'contain',
   },
   buttonText: {
     fontSize: 24,
     color: 'white',
     fontWeight: 'bold',
+    marginTop: 20,
+  },
+  armed: {
+    backgroundColor: '#FF4136',
+  },
+  disarmed: {
+    backgroundColor: '#2ECC40',
   },
 });
 

@@ -1,22 +1,21 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useContext} from 'react';
 import {
   StyleSheet,
   Text,
   View,
   TextInput,
-  ImageBackground,
-  Image,
   TouchableOpacity,
-  ScrollView,
-  Keyboard,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {
+  faEye,
   faEyeSlash,
+  faEnvelope,
   faLock,
-  faPhoneAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import {AppColors, AppTxt, AppButton} from '../../assets/styles/default-styles';
 import {AuthContext} from '../../utils/auth.context';
 import useAuthenticationApi from '../../api/authentication';
 import showToast from '../../functions/showToast';
@@ -27,199 +26,177 @@ const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPasswordValue, setShowPasswordValue] = useState(true);
-  const [keyboardShown, setKeyboardShown] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const {doLogin, registerUser} = useAuthenticationApi(
+  const {doLogin} = useAuthenticationApi(
     email,
     password,
     setIsLoading,
     navigation,
   );
 
-  //Manejo de teclado
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener(
-      'keyboardDidShow',
-      _keyboardDidShow,
-    );
-    const hideSubscription = Keyboard.addListener(
-      'keyboardDidHide',
-      _keyboardDidHide,
-    );
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
-  const _keyboardDidShow = () => setKeyboardShown(true);
-  const _keyboardDidHide = () => setKeyboardShown(false);
-
-  // Validación de email y contraseña
-  const isValidEmail = email => /\S+@\S+\.\S+/.test(email);
-  const isValidPassword = password => password.length >= 6;
-
-  // Lógica de autenticación
-  const handleLogin = async isEasyLogin => {
-    if (!isValidEmail(email)) {
-      showToast('error', 'Por favor, ingresa un email válido.', 5000);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      showToast('error', 'Por favor, complete todos los campos.', 3000);
       return;
     }
-
-    if (!isValidPassword(password)) {
-      showToast(
-        'error',
-        'La contraseña debe tener al menos 6 caracteres.',
-        5000,
-      );
-      return;
-    }
-
     await doLogin();
   };
 
   const easyLogin = async () => {
-    await auth().signInWithEmailAndPassword('adminuno@yopmail.com', '12345678');
-    navigation.navigate('Home');
+    try {
+      setIsLoading(true);
+      await auth().signInWithEmailAndPassword(
+        'adminuno@yopmail.com',
+        '12345678',
+      );
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error('Error en inicio rápido:', error);
+      showToast('error', 'Error en inicio rápido. Intente nuevamente.', 3000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <View onPress={() => Keyboard.dismiss} style={styles.container}>
-      <View style={[styles.form]}>
-        <Text style={styles.welcomeTitle}>Bienvenido a la alarma de robo!</Text>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={email}
-            onChangeText={text => setEmail(text)}
-            placeholder="Tu nombre de usuario"
-            placeholderTextColor={AppColors.darklight}
-            style={styles.inputStyle}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Tu contraseña"
-            placeholderTextColor={AppColors.darklight}
-            style={styles.inputStyle}
-            secureTextEntry={showPasswordValue}
-            onChangeText={text => setPassword(text)}
-          />
-
-          <TouchableOpacity
-            style={styles.btnShowPassword}
-            onPress={() => {
-              setShowPasswordValue(!showPasswordValue);
-            }}>
-            <FontAwesomeIcon
-              icon={faEyeSlash}
-              style={{color: '#888888'}}
-              size={25}
+    <ImageBackground
+      source={require('../../assets/img/login-background.png')}
+      style={styles.backgroundImage}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}>
+        <View style={styles.overlay}>
+          <Text style={styles.title}>Bienvenido</Text>
+          <View style={styles.inputContainer}>
+            <FontAwesomeIcon icon={faEnvelope} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#B0B0B0"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
+          </View>
+          <View style={styles.inputContainer}>
+            <FontAwesomeIcon icon={faLock} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Contraseña"
+              placeholderTextColor="#B0B0B0"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <FontAwesomeIcon
+                icon={showPassword ? faEyeSlash : faEye}
+                style={styles.eyeIcon}
+              />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={isLoading}>
+            <Text style={styles.buttonText}>
+              {isLoading ? 'Cargando...' : 'Iniciar Sesión'}
+            </Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={{justifyContent: 'center', marginTop: 25}}>
           <TouchableOpacity
             style={[
-              AppButton.purple,
-              !email?.length || !password?.length || isLoading
-                ? AppButton.disabled
-                : '',
+              styles.button,
+              styles.quickLoginButton,
+              isLoading && styles.buttonDisabled,
             ]}
-            onPress={handleLogin}
-            disabled={!email?.length || !password?.length || isLoading}>
-            <Text style={AppButton.text}>Ingresar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[{marginTop: 10}, AppButton.purple]}
-            onPress={() =>
-              navigation.navigate('Register', {navigation: navigation})
-            }
+            onPress={easyLogin}
             disabled={isLoading}>
-            <Text style={AppButton.text}>Crear Cuenta</Text>
+            <Text style={styles.buttonText}>Inicio Rápido</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            style={[{marginTop: 10}, AppButton.purple]}
-            onPress={() => easyLogin()}
-            disabled={isLoading}>
-            <Text style={AppButton.text}>Inicio rápido</Text>
+            onPress={() => navigation.navigate('Register')}
+            style={styles.registerLink}>
+            <Text style={styles.registerText}>
+              ¿No tenes una cuenta? Registrate
+            </Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#2C2C2C', // Fondo oscuro
+    justifyContent: 'center',
   },
-  form: {
-    backgroundColor: '#1A1A40', // Fondo del formulario oscuro
-    flex: 1,
-    paddingTop: 10,
-    paddingHorizontal: 30,
-    borderRadius: 15,
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 5,
+    borderRadius: 10,
+    margin: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 30,
+    textAlign: 'center',
   },
   inputContainer: {
-    borderBottomWidth: 1,
-    borderColor: '#4A5EB8', // Borde azul tenue
-    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  inputStyle: {
-    color: '#D9D9D9', // Texto gris claro
-    paddingRight: 5,
-    fontSize: 20,
-    alignSelf: 'stretch',
-    flex: 1,
-    lineHeight: 25,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
-  welcomeTitle: {
-    textAlign: 'center',
-    fontSize: 24,
-    marginTop: 12,
-    marginBottom: 25,
-    color: '#AAB2FF', // Azul claro para destacar el título
-  },
-  btnShowPassword: {
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  titleContainer: {
-    height: 200,
-    width: '100%',
-    transform: [{scaleX: 2}],
-    borderBottomStartRadius: 200,
-    borderBottomEndRadius: 200,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#7B61FF', // Morado vibrante
-  },
-  buttonStyle: {
-    backgroundColor: '#7B61FF', // Botón morado vibrante
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 25,
-    paddingVertical: 15,
     marginBottom: 15,
+    paddingHorizontal: 15,
+  },
+  inputIcon: {
+    color: '#FFFFFF',
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    color: '#FFFFFF',
+    paddingVertical: 15,
+    fontSize: 16,
+  },
+  eyeIcon: {
+    color: '#FFFFFF',
+  },
+  button: {
+    backgroundColor: '#4A90E2',
+    padding: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonDisabled: {
+    backgroundColor: '#7F8C8D',
+  },
+  quickLoginButton: {
+    backgroundColor: '#2ECC71',
   },
   buttonText: {
-    color: '#D9D9D9', // Texto gris claro en los botones
-    textAlign: 'center',
+    color: '#FFFFFF',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  registerLink: {
+    marginTop: 20,
+  },
+  registerText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontSize: 16,
   },
 });
 
