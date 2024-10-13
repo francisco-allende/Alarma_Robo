@@ -26,6 +26,7 @@ const HomeScreen = () => {
   const [isInitialRender, setIsInitialRender] = useState(true);
   const currentSound = useRef(null);
   const orientationTimeout = useRef(null);
+  const lastVerticalTime = useRef(0);
 
   useEffect(() => {
     setUpdateIntervalForType(SensorTypes.accelerometer, 100);
@@ -34,18 +35,15 @@ const HomeScreen = () => {
     const _subscribe = () => {
       subscription = accelerometer.subscribe(({x, y, z}) => {
         let newOrientation;
-        const absX = Math.abs(x);
-        const absY = Math.abs(y);
-        const absZ = Math.abs(z);
+        const now = Date.now();
 
-        if (absY > 9 && absX < 2 && absZ < 2) {
+        if (Math.abs(y) > 7) {
           newOrientation = 'vertical';
-        } else if (absZ > 9 && absX < 2 && absY < 2) {
-          newOrientation = 'horizontal';
-        } else if (absX > 3) {
+          lastVerticalTime.current = now;
+        } else if (Math.abs(x) > 3 && now - lastVerticalTime.current > 500) {
           newOrientation = x > 0 ? 'rightTilt' : 'leftTilt';
         } else {
-          newOrientation = 'horizontal'; // Default to horizontal for stability
+          newOrientation = 'horizontal';
         }
 
         if (newOrientation !== orientation) {
@@ -120,7 +118,7 @@ const HomeScreen = () => {
       if (soundFile) {
         playSound(soundFile);
       }
-    }, 200); // Reduced to 200ms for faster response
+    }, 1000); // Reducido a 250ms para una respuesta más rápida
   };
 
   const playSound = soundFile => {
