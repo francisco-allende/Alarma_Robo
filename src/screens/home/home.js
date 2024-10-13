@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import {AuthContext} from '../../utils/auth.context';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {
   accelerometer,
   setUpdateIntervalForType,
@@ -19,6 +19,8 @@ import {
 import Sound from 'react-native-sound';
 import Torch from 'react-native-torch';
 import GoBackScreen from '../../components/go-back';
+import PasswordModal from './password-modal';
+import {getUserPassword, getCurrentUserId} from '../../api/firestore';
 
 const {width, height} = Dimensions.get('window');
 
@@ -31,6 +33,9 @@ const HomeScreen = () => {
   const currentSound = useRef(null);
   const orientationTimeout = useRef(null);
   const lastVerticalTime = useRef(0);
+  const [modalVisible, setModalVisible] = useState(false);
+  const route = useRoute();
+  const {userPassword} = route.params;
 
   useEffect(() => {
     setUpdateIntervalForType(SensorTypes.accelerometer, 100);
@@ -118,7 +123,7 @@ const HomeScreen = () => {
           break;
         case 'horizontal':
           soundFile = require('../../assets/sounds/epa.mp3');
-          Vibration.vibrate(5000);
+          Vibration.vibrate(3000);
           break;
       }
 
@@ -149,33 +154,22 @@ const HomeScreen = () => {
 
   const toggleAlarm = () => {
     if (isArmed) {
-      Alert.prompt(
-        'Desactivar Alarma',
-        'Ingrese su contraseña para desactivar la alarma',
-        [
-          {
-            text: 'Cancelar',
-            onPress: () => console.log('Cancelado'),
-            style: 'cancel',
-          },
-          {
-            text: 'OK',
-            onPress: password => {
-              if (password === user.password) {
-                setIsArmed(false);
-              } else {
-                playSound(require('../../assets/sounds/wrong_password.mp3'));
-                Vibration.vibrate(5000);
-                Torch.switchState(true);
-                setTimeout(() => Torch.switchState(false), 5000);
-              }
-            },
-          },
-        ],
-        'secure-text',
-      );
+      setModalVisible(true);
+      console.log(userPassword);
     } else {
       setIsArmed(true);
+    }
+  };
+
+  const handlePasswordSubmit = enteredPassword => {
+    if (enteredPassword === userPassword) {
+      setIsArmed(false);
+      setModalVisible(false);
+    } else {
+      playSound(require('../../assets/sounds/wrong_password.mp3'));
+      Vibration.vibrate(5000);
+      Torch.switchState(true);
+      setTimeout(() => Torch.switchState(false), 5000);
     }
   };
 
@@ -196,6 +190,11 @@ const HomeScreen = () => {
           {isArmed ? 'DESACTIVAR' : 'ACTIVAR'}
         </Text>
       </TouchableOpacity>
+      <PasswordModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={handlePasswordSubmit}
+      />
     </View>
   );
 };

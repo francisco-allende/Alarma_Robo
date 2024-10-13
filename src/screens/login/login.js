@@ -41,6 +41,7 @@ const LoginScreen = ({navigation}) => {
       return;
     }
     await doLogin();
+    navigation.navigate('Home', {userPassword: password});
   };
 
   const easyLogin = async () => {
@@ -50,7 +51,7 @@ const LoginScreen = ({navigation}) => {
         'adminuno@yopmail.com',
         '12345678',
       );
-      navigation.navigate('Home');
+      navigation.navigate('Home', {userPassword: '12345678'});
     } catch (error) {
       console.error('Error en inicio rápido:', error);
       showToast('error', 'Error en inicio rápido. Intente nuevamente.', 3000);
