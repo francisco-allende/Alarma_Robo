@@ -1,11 +1,16 @@
-import React, {useState, useContext, useEffect, useRef} from 'react';
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Vibration,
-  Alert,
   Image,
   Dimensions,
 } from 'react-native';
@@ -20,22 +25,21 @@ import Sound from 'react-native-sound';
 import Torch from 'react-native-torch';
 import GoBackScreen from '../../components/go-back';
 import PasswordModal from './password-modal';
-import {getUserPassword, getCurrentUserId} from '../../api/firestore';
 
 const {width, height} = Dimensions.get('window');
 
 const HomeScreen = () => {
   const {user} = useContext(AuthContext);
   const navigation = useNavigation();
+  const route = useRoute();
+  const {userPassword} = route.params;
   const [isArmed, setIsArmed] = useState(false);
   const [orientation, setOrientation] = useState('horizontal');
   const [isInitialRender, setIsInitialRender] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
   const currentSound = useRef(null);
   const orientationTimeout = useRef(null);
   const lastVerticalTime = useRef(0);
-  const [modalVisible, setModalVisible] = useState(false);
-  const route = useRoute();
-  const {userPassword} = route.params;
 
   useEffect(() => {
     setUpdateIntervalForType(SensorTypes.accelerometer, 100);
@@ -52,10 +56,9 @@ const HomeScreen = () => {
         } else if (Math.abs(x) > 3 && now - lastVerticalTime.current > 500) {
           newOrientation = x > 0 ? 'rightTilt' : 'leftTilt';
         } else if (Math.abs(z) > 8) {
-          // Increased sensitivity for horizontal
           newOrientation = 'horizontal';
         } else {
-          newOrientation = orientation; // Keep current orientation if no significant change
+          newOrientation = orientation;
         }
 
         if (newOrientation !== orientation) {
@@ -130,7 +133,7 @@ const HomeScreen = () => {
       if (soundFile) {
         playSound(soundFile);
       }
-    }, 500); // Adjusted to 500ms for a balance between responsiveness and stability
+    }, 500);
   };
 
   const playSound = soundFile => {
@@ -152,14 +155,16 @@ const HomeScreen = () => {
     });
   };
 
-  const toggleAlarm = () => {
+  const toggleAlarm = useCallback(() => {
+    console.log('toggleAlarm called, isArmed:', isArmed);
     if (isArmed) {
+      console.log('Setting modalVisible to true');
       setModalVisible(true);
-      console.log(userPassword);
     } else {
+      console.log('Setting isArmed to true');
       setIsArmed(true);
     }
-  };
+  }, [isArmed]);
 
   const handlePasswordSubmit = enteredPassword => {
     if (enteredPassword === userPassword) {
