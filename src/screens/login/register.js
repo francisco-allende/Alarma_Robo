@@ -1,13 +1,14 @@
 import React, {useState} from 'react';
 import {
-  StyleSheet,
   Text,
   View,
   TextInput,
   TouchableOpacity,
-  ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
+  Image,
+  ImageBackground,
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {
@@ -15,10 +16,10 @@ import {
   faEyeSlash,
   faEnvelope,
   faLock,
-  faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import useAuthenticationApi from '../../api/authentication';
 import showToast from '../../functions/showToast';
+import {Colors, GlobalStyles} from '../../assets/styles/global-styles';
 
 const RegisterScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
@@ -48,94 +49,102 @@ const RegisterScreen = ({navigation}) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/img/login-background.png')}
-      style={styles.backgroundImage}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}>
-        <View style={styles.overlay}>
-          <Text style={styles.title}>Crear Cuenta</Text>
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faEnvelope} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#B0B0B0"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faLock} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              placeholderTextColor="#B0B0B0"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <FontAwesomeIcon
-                icon={showPassword ? faEyeSlash : faEye}
-                style={styles.eyeIcon}
+    <View style={[styles.container, {backgroundColor: Colors.secondary}]}>
+      <ImageBackground
+        source={require('../../assets/img/login-background.png')}
+        style={styles.backgroundImage}
+        imageStyle={styles.backgroundImageStyle}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoidingView}>
+          <View style={styles.formContainer}>
+            <Text style={[GlobalStyles.text, styles.title]}>Crear Cuenta</Text>
+            <View style={styles.inputContainer}>
+              <FontAwesomeIcon icon={faEnvelope} style={styles.inputIcon} />
+              <TextInput
+                style={[GlobalStyles.input, styles.input]}
+                placeholder="Correo electrónico"
+                placeholderTextColor={Colors.text}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
               />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faLock} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Confirmar Contraseña"
-              placeholderTextColor="#B0B0B0"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-            />
+            </View>
+            <View style={styles.inputContainer}>
+              <FontAwesomeIcon icon={faLock} style={styles.inputIcon} />
+              <TextInput
+                style={[GlobalStyles.input, styles.input]}
+                placeholder="Contraseña"
+                placeholderTextColor={Colors.text}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <FontAwesomeIcon
+                  icon={showPassword ? faEyeSlash : faEye}
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.inputContainer}>
+              <FontAwesomeIcon icon={faLock} style={styles.inputIcon} />
+              <TextInput
+                style={[GlobalStyles.input, styles.input]}
+                placeholder="Confirmar Contraseña"
+                placeholderTextColor={Colors.text}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <FontAwesomeIcon
+                  icon={showConfirmPassword ? faEyeSlash : faEye}
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-              <FontAwesomeIcon
-                icon={showConfirmPassword ? faEyeSlash : faEye}
-                style={styles.eyeIcon}
-              />
+              style={[GlobalStyles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleRegister}
+              disabled={isLoading}>
+              <Text style={GlobalStyles.buttonText}>
+                {isLoading ? 'Cargando...' : 'Registrarse'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login')}
+              style={styles.loginLink}>
+              <Text style={[GlobalStyles.text, styles.loginText]}>
+                ¿Ya tienes una cuenta? Inicia sesión
+              </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleRegister}
-            disabled={isLoading}>
-            <Text style={styles.buttonText}>
-              {isLoading ? 'Cargando...' : 'Registrarse'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            style={styles.loginLink}>
-            <Text style={styles.loginText}>
-              ¿Ya tenes una cuenta? Inicia sesión
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </ImageBackground>
+        </KeyboardAvoidingView>
+      </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   container: {
+    flex: 1,
+  },
+  backgroundImage: {
     flex: 1,
     justifyContent: 'center',
   },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  backgroundImageStyle: {
+    opacity: 0.7, // Ajusta este valor para cambiar la visibilidad de la imagen
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  formContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Un fondo semi-transparente para el formulario
     padding: 20,
     borderRadius: 10,
     margin: 20,
@@ -143,51 +152,34 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 30,
     textAlign: 'center',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Colors.inputBackground,
     borderRadius: 25,
     marginBottom: 15,
     paddingHorizontal: 15,
   },
   inputIcon: {
-    color: '#FFFFFF',
+    color: Colors.text,
     marginRight: 10,
   },
   input: {
     flex: 1,
-    color: '#FFFFFF',
-    paddingVertical: 15,
-    fontSize: 16,
   },
   eyeIcon: {
-    color: '#FFFFFF',
-  },
-  button: {
-    backgroundColor: '#4A90E2',
-    padding: 15,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginTop: 20,
+    color: Colors.text,
   },
   buttonDisabled: {
-    backgroundColor: '#7F8C8D',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    opacity: 0.7,
   },
   loginLink: {
     marginTop: 20,
   },
   loginText: {
-    color: '#FFFFFF',
     textAlign: 'center',
     fontSize: 16,
   },

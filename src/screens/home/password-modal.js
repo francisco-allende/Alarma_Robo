@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import {Colors, GlobalStyles} from '../../assets/styles/global-styles';
 
 const PasswordModal = ({visible, onClose, onSubmit}) => {
   const [password, setPassword] = useState('');
@@ -27,14 +28,14 @@ const PasswordModal = ({visible, onClose, onSubmit}) => {
       onRequestClose={onClose}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={styles.modalText}>
+          <Text style={[GlobalStyles.text, styles.modalText]}>
             Ingrese su contraseña para desactivar la alarma
           </Text>
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
+              style={[GlobalStyles.input, styles.input]}
               placeholder="Contraseña"
-              placeholderTextColor="#B0B0B0"
+              placeholderTextColor={Colors.text}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -50,12 +51,12 @@ const PasswordModal = ({visible, onClose, onSubmit}) => {
             <TouchableOpacity
               style={[styles.button, styles.buttonCancel]}
               onPress={onClose}>
-              <Text style={styles.textStyle}>Cancelar</Text>
+              <Text style={GlobalStyles.buttonText}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.buttonSubmit]}
               onPress={handleSubmit}>
-              <Text style={styles.textStyle}>Confirmar</Text>
+              <Text style={GlobalStyles.buttonText}>Confirmar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     padding: 35,
     alignItems: 'center',
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F0F0',
+    backgroundColor: Colors.inputBackground,
     borderRadius: 25,
     marginBottom: 15,
     paddingHorizontal: 15,
@@ -102,12 +103,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: '#000000',
-    paddingVertical: 15,
-    fontSize: 16,
   },
   eyeIcon: {
-    color: '#000000',
+    color: Colors.text,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -122,15 +120,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   buttonCancel: {
-    backgroundColor: '#FF4136',
+    backgroundColor: Colors.accent,
   },
   buttonSubmit: {
-    backgroundColor: '#2ECC40',
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    backgroundColor: Colors.secondary,
   },
 });
 

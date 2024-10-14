@@ -8,6 +8,7 @@ import {
   AppColors,
   AppFontSize,
 } from '../assets/styles/default-styles';
+import {Colors} from '../assets/styles/global-styles';
 
 export default function GoBackScreen({isActive}) {
   const navigation = useNavigation();
@@ -16,7 +17,7 @@ export default function GoBackScreen({isActive}) {
     <View
       style={[
         styles.header,
-        {backgroundColor: isActive ? '#FF4136' : '#2ECC40'},
+        {backgroundColor: isActive ? Colors.accent : Colors.secondary},
       ]}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <FontAwesomeIcon

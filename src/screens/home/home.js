@@ -25,6 +25,7 @@ import Sound from 'react-native-sound';
 import Torch from 'react-native-torch';
 import GoBackScreen from '../../components/go-back';
 import PasswordModal from './password-modal';
+import {Colors, GlobalStyles} from '../../assets/styles/global-styles';
 
 const {width, height} = Dimensions.get('window');
 
@@ -179,7 +180,7 @@ const HomeScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={GlobalStyles.container}>
       <GoBackScreen isActive={isArmed} />
       <TouchableOpacity
         style={[
@@ -191,7 +192,7 @@ const HomeScreen = () => {
           source={require('../../assets/img/icono.png')}
           style={styles.buttonImage}
         />
-        <Text style={styles.buttonText}>
+        <Text style={[GlobalStyles.text, styles.buttonText]}>
           {isArmed ? 'DESACTIVAR' : 'ACTIVAR'}
         </Text>
       </TouchableOpacity>
@@ -205,10 +206,6 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1A1A40',
-  },
   buttonContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -221,15 +218,14 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 24,
-    color: 'white',
     fontWeight: 'bold',
     marginTop: 20,
   },
   armed: {
-    backgroundColor: '#FF4136',
+    backgroundColor: Colors.accent,
   },
   disarmed: {
-    backgroundColor: '#2ECC40',
+    backgroundColor: Colors.secondary,
   },
 });
 
