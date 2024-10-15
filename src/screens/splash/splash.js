@@ -18,7 +18,7 @@ const SplashScreen = ({navigation}) => {
           source={require('./../../assets/img/icono.png')}
           style={styles.icon}
         />
-        <Text style={styles.title}>Relevamiento Visual</Text>
+        <Text style={styles.title}>Alarma de Robo</Text>
       </View>
       <View style={styles.bottomSection}>
         <Text style={styles.info}>Francisco Allende</Text>
