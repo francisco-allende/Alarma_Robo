@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: '#35358f',
     paddingVertical: 50,
   },
   topSection: {
